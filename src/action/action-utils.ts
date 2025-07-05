@@ -77,7 +77,7 @@ export async function updateTextFieldIfChanged(id: string, value: string, fieldH
     }
     // Otherwise, update the value.
     debug(book, verbose, `Updating ${fieldHumanName} from ${oldValue} to ${value}`);
-    await page.clearTextField(id, Timeouts.SEC_10);
+    await page.clearTextField(id, Timeouts.SEC_10, oldValue.split("\n").length);
     if (value != '') {
         await page.type(id, value, Timeouts.SEC_10);
     }
@@ -124,12 +124,14 @@ export async function clickSomething(id: string, fieldHumanName: string, page: P
 export async function updateTextAreaIfChanged(id: string, value: string, processor: (str: string) => string, fieldHumanName: string, page: PageInterface, book: Book, verbose: boolean) {
     //debug(book, verbose, `Waiting for the text area element (${id})`)
     await page.waitForSelector(id, Timeouts.SEC_10);
-    const oldValue = processor(await page.evalValue('#cke_1_contents > textarea', x => (x as HTMLTextAreaElement).value, Timeouts.SEC_10));
+    const rawOldValue = await page.evalValue('#cke_1_contents > textarea', x => (x as HTMLTextAreaElement).value, Timeouts.SEC_10);
+    const linesToRemove = rawOldValue.split('\n').length;
+    const oldValue = processor(rawOldValue);
     const newValue = processor(value);
     if (oldValue != newValue) {
         // Description needs to be updated.
         debug(book, verbose, `Updating ${fieldHumanName} from \n\t${oldValue}\n\tto\n\t${newValue}`);
-        await page.clearTextField(id, Timeouts.SEC_10);
+        await page.clearTextField(id, Timeouts.SEC_10, linesToRemove);
         await page.type(id, newValue, Timeouts.SEC_10);
     } else {
         debug(book, verbose, `Updating ${fieldHumanName}- not needed, got ${clipLen(oldValue)}`);

@@ -110,7 +110,7 @@ export class FakePage implements PageInterface {
         this.performedActions.push("update:" + value);
     }
 
-    async clearTextField(id: string, timeoutMillis: number) {
+    async clearTextField(id: string, timeoutMillis: number, numLinesToRemove: number = 1) {
         this.performedActions.push("clear");
     }
 

@@ -187,3 +187,6 @@ export function removeComment(value: string): string {
     return value;
 }
 
+export function goToSleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

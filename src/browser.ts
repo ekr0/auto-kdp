@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { Browser, Page } from 'puppeteer';
 import { Timeouts } from './util/timeouts.js';
+import { goToSleep } from './util/utils.js';
 
 export interface BrowserInterface {
     newPage(): Promise<PageInterface>;
@@ -27,7 +28,7 @@ export interface PageInterface {
     select(id: string, value: string, timeoutMillis: number): Promise<void>;
     evalValue(id: string, fun: (x: HTMLElement) => string, timeoutMillis: number): Promise<string>;
     updateValue(id: string, value: string): Promise<void>;
-    clearTextField(id: string, timeoutMillis: number): Promise<void>;
+    clearTextField(id: string, timeoutMillis: number, numLines: number): Promise<void>;
     close(): Promise<void>;
     hasElement(id: string, timeoutMillis: number): Promise<boolean>;
 }
@@ -58,7 +59,7 @@ export class PuppeteerBrowser implements BrowserInterface {
         return new PuppeteerBrowser(await puppeteer
             .use(StealthPlugin())
             .launch({
-                headless: headless ? 'new' : false,
+                headless: headless,
                 defaultViewport: null,
                 userDataDir: userDataDir
             }));
@@ -89,7 +90,7 @@ export class PuppeteerPage implements PageInterface {
     }
 
     async waitForTimeout(timeoutMillis: number) {
-        await this.page.waitForTimeout(timeoutMillis);
+        await goToSleep(timeoutMillis);
     }
 
     async selectFile(fileSelectorId: string, fileToSelect: string, timeoutMillis: number): Promise<void> {
@@ -100,9 +101,9 @@ export class PuppeteerPage implements PageInterface {
     }
 
     async goto(url: string, timeoutMillis: number): Promise<number> {
-        await this.page.waitForTimeout(Timeouts.SEC_1); // Just in case.
+        // console.log("Going to URL: " + url);
         const response = await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMillis });
-        await this.page.waitForTimeout(Timeouts.SEC_1); // Just in case.
+        await goToSleep(Timeouts.SEC_1); // Just in case.
         return response.status();
     }
 
@@ -135,15 +136,12 @@ export class PuppeteerPage implements PageInterface {
     }
 
     async click(id: string, timeoutMillis: number) {
-        //console.log("Waiting for id = " + id);
         await this.waitForSelector(id, timeoutMillis);
         console.log("Clicking at id = " + id);
         await this.page.click(id);
-        //console.log("Clicked");
     }
 
     async hover(id: string, timeoutMillis: number) {
-        console.log("Hovering on id = " + id);
         await this.waitForSelector(id, timeoutMillis);
         await this.page.hover(id);
     }
@@ -158,13 +156,20 @@ export class PuppeteerPage implements PageInterface {
         await this.page.type(id, text);
     }
 
-
-    async clearTextField(id: string, timeoutMillis: number) {
+    async clearTextField(id: string, timeoutMillis: number, numLinesToRemove: number = 1) {
         await this.waitForSelector(id, timeoutMillis);
         await this.page.focus(id);
-        await this.page.click(id, { clickCount: 3 });
-        await this.page.keyboard.press('Backspace');
-        await this.page.waitForTimeout(Timeouts.SEC_HALF);
+        // Ideally we just click Control-A (or Meta-A on Mac) to select all,
+        // but this does not wait on IOS. So instead a triple click selects 
+        // a line so we can delete it. 
+        if (numLinesToRemove <= 0) {
+            numLinesToRemove = 1
+        } 
+        for (let i = 0; i < numLinesToRemove; i++) {
+            await this.page.click(id, { clickCount: 3 });
+            await this.page.keyboard.press('Backspace');
+        }
+        await goToSleep(Timeouts.SEC_1);
     }
 
     async updateValue(id: string, value: string) {
