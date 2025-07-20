@@ -54,16 +54,16 @@ export async function scrape(book: Book, params: ActionParams): Promise<ActionRe
 
   // Get pubStatus from the search result.
   {
-    let id = '[id="' + book.id + '-status"] .element-popover-text span';
+    let id = '[id="' + book.id + '-status"] .element-popover-text span:nth-child(1)';
     debug(book, verbose, 'Getting pubStatus');
     const pubStatus = await page.evalValue(id, el => el.innerText.trim(), Timeouts.SEC_10);
-    book.pubStatus = pubStatus.trim().toUpperCase()
-    debug(book, verbose, 'Got pubStatus: ' + pubStatus);
+    book.pubStatus = pubStatus.trim().toUpperCase();
+    debug(book, verbose, 'Got pubStatus: ' + book.pubStatus);
   }
 
   // Get pubStatusDetail from the search result (it's right after the pubStatus).
   {
-    let id = '[id="' + book.id + '-status"] .element-popover-text';
+    let id = '[id="' + book.id + '-status"] .element-popover-text span:nth-child(2)';
     debug(book, verbose, 'Getting pubStatusDetail');
     let pubStatusDetail = await page.evalValue(id, el => el.innerText.trim(), Timeouts.SEC_10);
     pubStatusDetail = stripPrefix(pubStatusDetail, book.pubStatus).trim();
