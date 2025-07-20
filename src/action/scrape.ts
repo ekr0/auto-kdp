@@ -57,7 +57,7 @@ export async function scrape(book: Book, params: ActionParams): Promise<ActionRe
     let id = '[id="' + book.id + '-status"] .element-popover-text span';
     debug(book, verbose, 'Getting pubStatus');
     const pubStatus = await page.evalValue(id, el => el.innerText.trim(), Timeouts.SEC_10);
-    book.pubStatus = pubStatus.trim();
+    book.pubStatus = pubStatus.trim().toUpperCase()
     debug(book, verbose, 'Got pubStatus: ' + pubStatus);
   }
 
