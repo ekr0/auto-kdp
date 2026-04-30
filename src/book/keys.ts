@@ -1,4 +1,20 @@
-export const ALL_MARKETPLACES = ["us", "uk", "de", "fr", "es", "it", "nl", "pl", "se", "jp", "ca", "au"];
+export const ALL_MARKETPLACES =
+    {
+        "us": { "currency": "usd", "urlForPricing": "Amazon.com" },
+        "ca": { "currency": "cad", "urlForPricing": "Amazon.ca" },
+        "jp": { "currency": "jpy", "urlForPricing": "Amazon.co.jp" },
+        "uk": { "currency": "gbp", "urlForPricing": "Amazon.co.uk" },
+        "au": { "currency": "aud", "urlForPricing": "Amazon.com.au" },
+        "be": { "currency": "eur", "urlForPricing": "Amazon.com.be" },
+        "de": { "currency": "eur", "urlForPricing": "Amazon.de" },
+        "es": { "currency": "eur", "urlForPricing": "Amazon.es" },
+        "fr": { "currency": "eur", "urlForPricing": "Amazon.fr" },
+        "ie": { "currency": "eur", "urlForPricing": "Amazon.ie" },
+        "it": { "currency": "eur", "urlForPricing": "Amazon.it" },
+        "nl": { "currency": "eur", "urlForPricing": "Amazon.nl" },
+        "pl": { "currency": "pln", "urlForPricing": "Amazon.pl" },
+        "se": { "currency": "sek", "urlForPricing": "Amazon.se" },
+    };
 export const ALL_BOOK_LANGUAGES = [
     "afrikaans",
     "alsatian",

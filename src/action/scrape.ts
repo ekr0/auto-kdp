@@ -31,26 +31,16 @@ export async function scrape(book: Book, params: ActionParams): Promise<ActionRe
 
   // Type the search query.
   debug(book, verbose, 'Querying for the book');
-  let id = '#podbookshelftable-search-input';
-  await page.clearTextField(id, Timeouts.SEC_5);
+  let id = '#refreshedbookshelftable-search-input'
+  await page.clearTextField(id, Timeouts.SEC_5, 1);
   await page.type(id, book.id, Timeouts.SEC_5);
 
   // Click search button.
   debug(book, verbose, 'Clicking Search');
-  id = '#podbookshelftable-search-button-submit .a-button-input';
+  id = '#refreshedbookshelftable-search-button-submit .a-button-input';
   await page.waitForTimeout(Timeouts.SEC_HALF);
   await page.focus(id, Timeouts.SEC_10);
   await page.click(id, Timeouts.SEC_10);
-
-  // Get ASIN from the search result.
-  if (book.asin == '') {
-    debug(book, verbose, 'Getting ASIN');
-    id = '#zme-indie-bookshelf-dual-print-price-asin-' + book.id;
-    const rawAsin = await page.evalValue(id, el => el.innerText, Timeouts.SEC_10);
-    const asin = stripPrefix(rawAsin.trim(), 'ASIN:').trim();
-    debug(book, verbose, 'Got ASIN: ' + asin);
-    book.asin = asin;
-  }
 
   // Get pubStatus from the search result.
   {
@@ -84,6 +74,18 @@ export async function scrape(book: Book, params: ActionParams): Promise<ActionRe
     }
   }
 
+  // Get ASIN from the search result.
+  if (book.asin == '') {
+    debug(book, verbose, 'Scraping ASIN');
+    id = '#zme-indie-bookshelf-dual-print-price-asin-' + book.id;
+    const rawAsin = await page.evalValue(id, el => el.innerText, Timeouts.SEC_10);
+    const asin = stripPrefix(rawAsin.trim(), 'ASIN:').trim();
+    debug(book, verbose, 'Got ASIN: ' + asin);
+    book.asin = asin;
+  } else {
+    debug(book, verbose, 'Not Scraping ASIN because it is already known: ' + book.asin);
+  }
+
   // Get titleId
   {
     debug(book, verbose, 'Getting title id');
@@ -102,22 +104,24 @@ export async function scrape(book: Book, params: ActionParams): Promise<ActionRe
   // Get series title.
   // TODO: Needs to be update wrt subtitle.
   debug(book, verbose, 'Getting series title');
-  id = '#zme-indie-bookshelf-dual-metadata-series_title-' + book.id + ' > a';
+  id = '[id=\"' + book.id + '-itemset-metadata\"] .manage-series-link > a'
   let scrapedSeriesTitle = '';
   let attempt = 1;
   for (; attempt < 3; ++attempt) {
     try {
       await page.bringToFront();
       await page.focus(id, Timeouts.SEC_3);
-      await page.waitForTimeout(Timeouts.SEC_1);
       scrapedSeriesTitle = await page.evalValue(id, el => el.innerText.trim(), Timeouts.SEC_30);
     } catch (e) {
     }
     if (scrapedSeriesTitle != 'SERIES_TITLE') {
       // We only repeat if we get that magical "SERIES_TITLE" string, which means the title has not loaded yet.
       break;
+    } else {
+      await page.waitForTimeout(Timeouts.SEC_1);
     }
   }
+  debug(book, verbose, 'Waiting for id ' + id);
 
   if (scrapedSeriesTitle == book.seriesTitle.toLowerCase()) {
     book.scrapedSeriesTitle = 'ok';
@@ -131,30 +135,32 @@ export async function scrape(book: Book, params: ActionParams): Promise<ActionRe
 
   // Check whether this book is archived.
   // Opening menu
-  debug(book, verbose, 'Checking if archived');
-  const draftStatus = ['IN REVIEW', 'PUBLISHING'].includes(book.pubStatus) ? 'draft' :
-    (book.pubStatus == 'LIVE' && ['With unpublished changes', 'Updates publishing', 'Updates in review'].includes(book.pubStatusDetail) ? 'live-progress' :
-      book.pubStatus.toLowerCase());
-  id = `#zme-indie-bookshelf-dual-print-actions-${draftStatus}-book-actions-${book.id}-other-actions-announce`;
-  await page.focus(id, Timeouts.SEC_1);
-  await page.waitForTimeout(Timeouts.SEC_1);
-  await page.tap(id, Timeouts.SEC_1);
-  await page.waitForTimeout(Timeouts.SEC_1);
-  // Reading if there is an option to archive or to unarchive
-  const hasArchiveOption = await page.hasElement(`#print_archive_title-${book.titleId}`, Timeouts.SEC_3);
-  const hasUnarchiveOption = await page.hasElement(`#print_unarchive_title-${book.titleId}`, Timeouts.SEC_3);
-  debug(book, verbose, "Has archive option = " + hasArchiveOption);
-  debug(book, verbose, "Has unarchive option = " + hasUnarchiveOption);
-  let archivedStatus = 'unknown';
-  if (hasUnarchiveOption && !hasArchiveOption) {
-    archivedStatus = 'archived';
-  } else if (hasArchiveOption && !hasUnarchiveOption) {
-    archivedStatus = '';
-  } else {
-    archivedStatus = 'undetermined';
+  if (book.pubStatus != 'BLOCKED') {
+    debug(book, verbose, 'Checking if archived');
+    const draftStatus = ['IN REVIEW', 'PUBLISHING'].includes(book.pubStatus) ? 'draft' :
+      (book.pubStatus == 'LIVE' && ['With unpublished changes', 'Updates publishing', 'Updates in review'].includes(book.pubStatusDetail) ? 'live-progress' :
+        book.pubStatus.toLowerCase());
+    id = `#zme-indie-bookshelf-dual-itemset-itemset-actions-column-itemset-actions-${book.id}`
+    await page.focus(id, Timeouts.SEC_1);
+    await page.waitForTimeout(Timeouts.SEC_1);
+    await page.tap(id, Timeouts.SEC_1);
+    await page.waitForTimeout(Timeouts.SEC_1);
+    // Reading if there is an option to archive or to unarchive
+    const hasArchiveOption = await page.hasElement(`#itemset_archive_title-`, Timeouts.SEC_3);
+    const hasUnarchiveOption = await page.hasElement(`#itemset_unarchive_title-`, Timeouts.SEC_3);
+    debug(book, verbose, "Has archive option = " + hasArchiveOption);
+    debug(book, verbose, "Has unarchive option = " + hasUnarchiveOption);
+    let archivedStatus = 'unknown';
+    if (hasUnarchiveOption && !hasArchiveOption) {
+      archivedStatus = 'archived';
+    } else if (hasArchiveOption && !hasUnarchiveOption) {
+      archivedStatus = '';
+    } else {
+      archivedStatus = 'undetermined';
+    }
+    book.scrapedIsArchived = archivedStatus;
+    debug(book, verbose, "Is archived: " + (book.scrapedIsArchived == '' ? 'not archived' : 'archived'));
   }
-  book.scrapedIsArchived = archivedStatus;
-  debug(book, verbose, "Got archived status: " + book.scrapedIsArchived);
 
   /* We do not close this special page.
     await maybeClosePage(params, page);
@@ -175,7 +181,8 @@ async function _getScrapePage(url: string, params: ActionParams): Promise<PageIn
     await globalBookshelfPage.waitForTimeout(Timeouts.SEC_1);  // Just in case.
 
     // Select "ALL" books, i.e. include archived ones.
-    await globalBookshelfPage.select('#podbookshelftable_view_input-option', 'ALL', Timeouts.SEC_3);
+    const id = '#refreshedbookshelftable_view_input-option';
+    await globalBookshelfPage.select(id, 'ALL', Timeouts.SEC_3);
   }
   return globalBookshelfPage;
 }

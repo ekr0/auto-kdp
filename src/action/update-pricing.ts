@@ -27,14 +27,9 @@ export async function updatePricing(book: Book, params: ActionParams): Promise<A
 
   let wasUpdated = await updateAllPrices(book, page, verbose);
 
-  await page.waitForTimeout(Timeouts.SEC_5);
-  await page.focus('#save-announce', Timeouts.SEC_5);
-  await page.waitForTimeout(Timeouts.SEC_5);
-
   // Save
   if (wasUpdated) {
-    clickSomething('#save-announce', 'Save', page, book, verbose);
-    await page.waitForSelectorVisible('#potter-success-alert-bottom div div', Timeouts.SEC_30);
+    clickSomething('button:contains("Save as Draft")', 'Save', page, book, verbose);
     await page.waitForTimeout(Timeouts.SEC_1);  // Just in case.
   } else {
     debug(book, verbose, 'Saving - not needed, prices were not updated')
@@ -51,11 +46,11 @@ export async function updateAllPrices(book: Book, page: PageInterface, verbose: 
   await page.waitForTimeout(Timeouts.SEC_2);
 
   // Update all other marketplace prices next.
-  for (const marketplace of ALL_MARKETPLACES) {
+  for (const marketplace of Object.keys(ALL_MARKETPLACES)) {
     if (marketplace != book.primaryMarketplace) {
       if (await updateMarketplace(marketplace, page, book, verbose)) {
         wasUpdated = true;
-        await page.waitForTimeout(Timeouts.SEC_1);
+        await page.waitForTimeout(Timeouts.SEC_2);
       }
       // The pricing page is flaky - an attempt to slow things down.
       // It seems when a price is entered some javascript is running and updating things
@@ -66,8 +61,19 @@ export async function updateAllPrices(book: Book, page: PageInterface, verbose: 
   return wasUpdated;
 }
 
+function getMarketplaceCurrency(marketplace: string) {
+    return ALL_MARKETPLACES[marketplace].currency
+}
+
+function getMarketplaceUrl(marketplace: string) {
+    return ALL_MARKETPLACES[marketplace].urlForPricing
+}
+
 async function updateMarketplace(marketplace: string, page: PageInterface, book: Book, verbose: boolean): Promise<boolean> {
-  const id = `#data-pricing-print-${marketplace}-price-input input`;
+  // Price for Amazon.com.au in AUD
+  const currency = getMarketplaceCurrency(marketplace).toUpperCase();
+  const url = getMarketplaceUrl(marketplace);
+  const id = `[aria-label="Price for ${url} in ${currency}"]`;
   const newPrice = book.getPriceForMarketplace(marketplace);
   return await updateTextFieldIfChanged(id, '' + newPrice, 'price for ' + marketplace + " marketplace", page, book, verbose);
 }

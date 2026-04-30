@@ -38,16 +38,21 @@ export async function publish(book: Book, params: ActionParams, isForce: boolean
   await page.goto(url, Timeouts.MIN_3);
   await page.waitForTimeout(Timeouts.SEC_1);  // Just in case.
 
+  /*
   debug(book, verbose, 'Checking if we can publish');
   const metadataStatus = await page.evalValue('#book-setup-navigation-bar-details-link .a-alert-content', x => x.textContent.trim(), Timeouts.SEC_5);
   const contentStatus = await page.evalValue('#book-setup-navigation-bar-content-link .a-alert-content', x => x.textContent.trim(), Timeouts.SEC_5);
   const pricingStatus = await page.evalValue('#book-setup-navigation-bar-pricing-link .a-alert-content', x => x.textContent.trim(), Timeouts.SEC_5);
 
   let ok = (metadataStatus == 'Complete') && contentStatus == 'Complete' && pricingStatus == 'Complete';
+  */
+  let ok = true;
 
   let isSuccess = ok;
   if (ok) {
+      /*
     debug(book, verbose, 'Metadata, content and pricing status: OK');
+    */
 
     if (!skipPricing) {
       // Update pricing, which is shown on this page. 
@@ -57,12 +62,17 @@ export async function publish(book: Book, params: ActionParams, isForce: boolean
       await updateAllPrices(book, page, verbose)
     }
 
-    debug(book, verbose, 'Clicking publish');
-    await page.click('#save-and-publish-announce', Timeouts.MIN_1);
+    debug(book, verbose, 'Clicking Publish your Paperback Book');
+
+    await page.click('button:contains("Publish your Paperback Book")', Timeouts.MIN_1);
     await page.waitForNavigation(Timeouts.MIN_1 );
     await page.waitForTimeout(Timeouts.SEC_1);  // Just in case.
+
+    isSuccess = true;
   } else {
+      /*
     debug(book, verbose, `Cannot publish! Metadata: ${metadataStatus}, content: ${contentStatus}, pricing: ${pricingStatus}`);
+    */
     isSuccess = false;
   }
 

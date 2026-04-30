@@ -207,7 +207,7 @@ export class Book {
     this.priceSe = parseFloatOrNull(getValue(Keys.PRICE_SE));
     this.priceUsd = parseFloatOrNull(getValue(Keys.PRICE_USD));
     this.primaryMarketplace = getValue(Keys.PRIMARY_MARKETPLACE);
-    if (!ALL_MARKETPLACES.includes(this.primaryMarketplace)) {
+    if (!Object.keys(ALL_MARKETPLACES).includes(this.primaryMarketplace)) {
       throw new Error("Unrecognized primary marketplace: " + this.primaryMarketplace)
     }
     this.seriesTitle = getOptionalValue(Keys.SERIES_TITLE);
@@ -249,10 +249,12 @@ export class Book {
     switch (marketplace) {
       case "us": return this.priceUsd;
       case "uk": return this.priceGbp;
+      case "be":
       case "de":
-      case "fr":
-      case "fr":
       case "es":
+      case "fr":
+      case "fr":
+      case "ie":
       case "it":
       case "nl":
         return this.priceEur;

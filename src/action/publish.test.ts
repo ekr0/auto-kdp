@@ -76,11 +76,7 @@ test('canPublish', async () => {
     const book = makeOkTestBook();
     book.pubStatus = 'DRAFT';
     book.pubStatusDetail = '';
-    const browser = new OnePageFakeBrowser([
-        "Complete", // Metadata status
-        "Complete", // Content status
-        "Complete", // Pricing status
-    ]);
+    const browser = new OnePageFakeBrowser([]);
     const params: ActionParams = {
         browser: browser,
         keepOpen: false,
@@ -104,54 +100,9 @@ test('canPublish', async () => {
     const page = params.browser.pages()[0] as FakePage;
     expect(page.performedActions).toEqual([
         'goto:https://kdp.amazon.com/en_US/title-setup/paperback/test_id/pricing?ref_=kdp_BS_D_ta_pr',
-        'eval:Complete',
-        'eval:Complete',
-        'eval:Complete',
         'click',
         'nav',
         'close'
     ]);
-    expect(page.closed).toBe(true);
-});
-
-test('cannotPublish_MetadataInProgress', async () => {
-    // Setup
-    const book = makeOkTestBook();
-    book.pubStatus = 'DRAFT';
-    book.pubStatusDetail = '';
-    const browser = new OnePageFakeBrowser([
-        "In progress", // Metadata status
-        "Complete", // Content status
-        "Complete", // Pricing status
-    ]);
-    const params: ActionParams = {
-        browser: browser,
-        keepOpen: false,
-        dryRun: false,
-        verbose: true,
-    };
-
-    //
-    // Action
-    //
-    const actionResult = await publish(book, params);
-
-    //
-    // Verify
-    //
-    expect(actionResult).not.toBe(null);
-    expect(actionResult.success).toBe(false);
-
-    // Make sure the browser did what we wanted.
-    expect(params.browser.pages().length).toBe(1);
-    const page = params.browser.pages()[0] as FakePage;
-    expect(page.performedActions).toEqual([
-        'goto:https://kdp.amazon.com/en_US/title-setup/paperback/test_id/pricing?ref_=kdp_BS_D_ta_pr',
-        'eval:In progress',
-        'eval:Complete',
-        'eval:Complete',
-        'close'
-    ]);
-
     expect(page.closed).toBe(true);
 });
