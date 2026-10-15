@@ -1,7 +1,6 @@
-import mock from 'mock-fs';
-import path from 'path';
 import * as fs from 'fs';
-import { fileURLToPath } from 'url';
+import * as os from 'os';
+import path from 'path';
 
 import { BookFile } from './book-file.js';
 
@@ -48,19 +47,26 @@ subtitle = My subtitle
 edition = 2
 `
 
-function fileExists(name: string) {
-    // Somewhow fs.existsSync(..) does not seem to work with mock-fs
-    // but readFileSync(..) does.
-    try {
-        fs.readFileSync(name)
-        return true
-    } catch (e) {
-        return false
+const originalCwd = process.cwd();
+let tmpDir: string;
+
+// Creates the given files in a fresh temp dir and makes it the cwd,
+// so that tests can use relative paths.
+function setupFiles(files: Record<string, string>) {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'auto-kdp-test-'));
+    process.chdir(tmpDir);
+    fs.mkdirSync('content/dir', { recursive: true });
+    for (const [name, content] of Object.entries(files)) {
+        fs.writeFileSync(name, content);
     }
 }
 
 afterEach(() => {
-    mock.restore();
+    process.chdir(originalCwd);
+    if (tmpDir) {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+        tmpDir = undefined;
+    }
 });
 
 test('can read book file', async () => {
@@ -69,12 +75,10 @@ test('can read book file', async () => {
         actionA,idA,title_idA,isbnA,asinA,Ava  ,pub_statusA,pub_dateA,pub_status_detailA,2011-10-05T21:48:00.000Z,cover_image_urlA,scraped_series_titleA,archived
         actionB,idB,title_idB,isbnB,asinB,Belle,pub_statusB,pub_dateB,pub_status_detailB,2011-10-05T21:48:00.000Z,cover_image_urlB,scraped_series_titleB,undetermined`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -173,12 +177,10 @@ subtitle =
 edition = 123
 seriesTitle =
 `
-    mock({
+    setupFiles({
         'books.csv': empty_books_csv,
         'books.csv.lock': '',
         'books.conf': empty_books_conf,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -215,12 +217,10 @@ test('detects same id', async () => {
          a     ,X ,a      ,a   ,a   ,Ava  ,a        ,a      ,a              ,           ,a            ,A                 ,
          a     ,X ,b      ,b   ,b   ,Belle,b        ,b      ,b              ,           ,b            ,B                 ,`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -233,12 +233,10 @@ test('detects same ASIN', async () => {
          a     ,a ,a      ,a   ,X   ,Ava  ,a        ,a      ,a              ,           ,a            ,A                 ,
          a     ,b ,b      ,b   ,X   ,Belle,b        ,b      ,b              ,           ,b            ,B                 ,`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -251,12 +249,10 @@ test('detects same isbn', async () => {
          a     ,a ,a      ,SAMEISBN,a   ,Ava  ,a        ,a      ,a              ,           ,a            ,A                 ,
          a     ,b ,b      ,SAMEISBN,b   ,Belle,b        ,b      ,b              ,           ,b            ,B                 ,`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -269,12 +265,10 @@ test('detects same titleId', async () => {
          a     ,a ,SAME   ,a   ,a   ,Ava  ,a        ,a      ,a              ,           ,a            ,A                 ,
          a     ,b ,SAME   ,b   ,b   ,Belle,b        ,b      ,b              ,           ,b            ,B                 ,`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -287,12 +281,10 @@ test('detects same signature', async () => {
          a     ,a ,a      ,a  ,a   ,Ava ,a        ,a      ,a              ,           ,a            ,A                 ,
          a     ,b ,b      ,b  ,b   ,Ava ,b        ,b      ,b              ,           ,b            ,B                 ,`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -307,13 +299,10 @@ test_actionA,test_idA,test_title_idA,test_isbnA,test_asinA,Ava,test_pub_statusA,
 test_actionB,test_idB,test_title_idB,test_isbnB,test_asinB,Belle,test_pub_statusB,test_pub_dateB,test_pub_status_detailB,,test_cover_image_urlB,title_b,,descriptionB
 `;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
-        'books.csv.new': '',
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -323,7 +312,7 @@ test_actionB,test_idB,test_title_idB,test_isbnB,test_asinB,Belle,test_pub_status
     await bookFile.writeBooksAsync(bookList);
 
     // Test the file written is the same as the source.
-    expect(fileExists('books.csv.new'));
+    expect(fs.existsSync('books.csv.new')).toBe(true);
     let books_new = fs.readFileSync('books.csv.new').toString()
     expect(books_new).toEqual(books_csv);
 });
@@ -333,13 +322,11 @@ test('can read description from a file', async () => {
         `description ,action,id,titleId,isbn,asin,name ,pubStatus,pubDate,pubStatusDetail,publishTime,coverImageUrl,scrapedSeriesTitle,scrapedIsArchived
         file:file.txt,      ,b ,b      ,b   ,b   ,Belle,         ,       ,               ,           ,             ,                  ,`;
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF,
         'file.txt': 'xxx',
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -397,12 +384,10 @@ subtitle = My subtitle
 edition = 2
 `
 
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': BOOKS_CONF_WITH_COMMENTS,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     let bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
@@ -421,12 +406,10 @@ test('detects default defined more than once (not supported)', async () => {
     books_conf += "mykey = v1\n"
     books_conf += "mykey = v2\n"
     books_conf += "another key = whatever\n"
-    mock({
+    setupFiles({
         'books.csv': books_csv,
         'books.csv.lock': '',
         'books.conf': books_conf,
-        'content': { dir: {} },
-        'node_modules': mock.load(path.resolve(__dirname, '../../node_modules')),
     });
 
     const bookFile = new BookFile('books.csv', 'books.conf', 'content/dir');
