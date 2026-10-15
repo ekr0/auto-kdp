@@ -29,7 +29,7 @@ export async function updatePricing(book: Book, params: ActionParams): Promise<A
 
   // Save
   if (wasUpdated) {
-    clickSomething('button:contains("Save as Draft")', 'Save', page, book, verbose);
+    await clickSomething('::-p-aria(Save as Draft[role="button"])', 'Save', page, book, verbose);
     await page.waitForTimeout(Timeouts.SEC_1);  // Just in case.
   } else {
     debug(book, verbose, 'Saving - not needed, prices were not updated')

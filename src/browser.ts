@@ -136,9 +136,9 @@ export class PuppeteerPage implements PageInterface {
     }
 
     async click(id: string, timeoutMillis: number) {
-        await this.waitForSelector(id, timeoutMillis);
         console.log("Clicking at id = " + id);
-        await this.page.click(id);
+        // Locator waits until the element is visible, enabled and stable before clicking.
+        await this.page.locator(id).setTimeout(timeoutMillis).click();
     }
 
     async hover(id: string, timeoutMillis: number) {

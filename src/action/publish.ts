@@ -62,9 +62,9 @@ export async function publish(book: Book, params: ActionParams, isForce: boolean
       await updateAllPrices(book, page, verbose)
     }
 
-    debug(book, verbose, 'Clicking Publish your Paperback Book');
+    debug(book, verbose, 'Clicking "Publish Your Paperback Book"');
 
-    await page.click('button:contains("Publish your Paperback Book")', Timeouts.MIN_1);
+    await page.click('::-p-aria(Publish Your Paperback Book[role="button"])', Timeouts.MIN_1);
     await page.waitForNavigation(Timeouts.MIN_1 );
     await page.waitForTimeout(Timeouts.SEC_1);  // Just in case.
 
