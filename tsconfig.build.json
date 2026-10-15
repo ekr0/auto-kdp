@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "sourceMap": false
+  },
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/util/fake-browser.ts",
+    "src/util/test-utils.ts"
+  ]
+}

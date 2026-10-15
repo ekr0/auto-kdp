@@ -17,6 +17,18 @@ If this was useful, drop me a line. It took me quite some time to separate and g
 - Please note auto-kdp does not handle _everything_ - I created it for my own needs. For example does not currently support subtitle, or kindle books. I wrote it as cleanly as possible so new fields can be added by pattern matching. 
 - It may break if amazon changes something in the page, e. g. uses different ```id``` for HTML elements we refer to. There is nothing we can do about it. In My about 2 years of experience this has happened only once.
 
+# Installation
+
+Requires Node.js 18 or newer. Node 22 or 24 (LTS) is recommended: on Node 26, Puppeteer's Chrome download currently fails to unpack.
+
+```bash
+npm install -g github:elutek/auto-kdp
+```
+
+This installs the `auto-kdp` command and downloads the Chrome build that Puppeteer uses. Then run `auto-kdp --help`.
+
+To work on the code instead, clone this repository and run `npm install` (this also builds `dist/`). Run `npm run build` after changes, or `npx tsx src/index.ts ...` to run straight from the sources.
+
 # How it works
 
 ![auto-kdp diagram](images/auto-kdp.png)
@@ -38,7 +50,7 @@ Column names matter, this is how the tool knows what is what (full list in [keys
 
 Run it something like:
 
-```node index.js --books books.csv --config books.conf --content-dir ./content/ [--verbose] [--dry-run] ``` 
+```auto-kdp --books books.csv --config books.conf --content-dir ./content/ [--verbose] [--dry-run] ``` 
 
 Auto-kdp processes books in-order. It executes actions one-by-one until all actions are done, or until failure. If an action fails, it is retried twice. Each action may modify the book data (e. g. action 'scrapeIsbn' fills out the 'isbn' column), and consumes the executed action. After every action, a new CSV file is written out (".new") with current data about all books.
 
@@ -62,7 +74,7 @@ NOTE: auto-kdp does not save your KDP credentionals, or transfer it anywhere - t
   - Set `action` to empty.
   - Tip: The [Edit csv](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv) extension to VS Code is very useful (I'm not associated with them).
 - Step 4: Try with `action` empty. This means `auto-kdp` will parse all books but do nothing, except signing into your KDP account.
-  - `ts-node ./auto-kdp/src/index.ts --books books.csv --config books.conf --content-dir book/ --user-data ./user_data --verbose --keep-open --headless=no`
+  - `auto-kdp --books books.csv --config books.conf --content-dir book/ --user-data ./user_data --verbose --keep-open --headless=no`
   - "keep open" means that browser tabs will not be closed.
   - "headless=no" means that you can see the browser and observe actions that it's doing for you. The only action needed is to sign into your KDP account.
   - If you get errors, check the syntax of the CSV file.
@@ -158,6 +170,8 @@ Common issues
 Tests are written in jest.
 
 ```npm run test```
+
+To run from source without building: ```npx tsx src/index.ts --help```.
 
 All actions and puppeteer messiness is in  ```src/action``` - this is not tested. Everything else is tested with 100% coverage.
 

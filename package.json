@@ -2,12 +2,23 @@
   "name": "auto-kdp",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "auto-kdp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "author": "",
   "license": "ISC",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --silent",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
     "clean": "rm -fr coverage dist"
   },
   "dependencies": {

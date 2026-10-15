@@ -1,6 +1,6 @@
 import { ActionResult } from '../util/action-result.js';
 import { debug, error } from '../util/utils.js'
-import { Urls, clickSomething, clickSomething2, fileExists, maybeClosePage } from './action-utils.js';
+import { Urls, clickSomething, fileExists, maybeClosePage } from './action-utils.js';
 import { Book } from '../book/book.js';
 import { ActionParams } from '../util/action-params.js';
 import { Timeouts } from '../util/timeouts.js';

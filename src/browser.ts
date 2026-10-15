@@ -28,7 +28,7 @@ export interface PageInterface {
     select(id: string, value: string, timeoutMillis: number): Promise<void>;
     evalValue(id: string, fun: (x: HTMLElement) => string, timeoutMillis: number): Promise<string>;
     updateValue(id: string, value: string): Promise<void>;
-    clearTextField(id: string, timeoutMillis: number, numLines: number): Promise<void>;
+    clearTextField(id: string, timeoutMillis: number, numLines?: number): Promise<void>;
     close(): Promise<void>;
     hasElement(id: string, timeoutMillis: number): Promise<boolean>;
 }
