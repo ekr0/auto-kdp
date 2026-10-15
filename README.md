@@ -22,12 +22,15 @@ If this was useful, drop me a line. It took me quite some time to separate and g
 Requires Node.js 18 or newer. Node 22 or 24 (LTS) is recommended: on Node 26, Puppeteer's Chrome download currently fails to unpack.
 
 ```bash
-npm install -g github:elutek/auto-kdp
+git clone https://github.com/elutek/auto-kdp.git
+cd auto-kdp
+npm install          # installs dependencies, downloads Chrome for Puppeteer, builds dist/
+npm install -g .     # puts an `auto-kdp` command on your PATH
 ```
 
-This installs the `auto-kdp` command and downloads the Chrome build that Puppeteer uses. Then run `auto-kdp --help`.
+Then run `auto-kdp --help` from any directory. To update, run `git pull && npm install` in the clone.
 
-To work on the code instead, clone this repository and run `npm install` (this also builds `dist/`). Run `npm run build` after changes, or `npx tsx src/index.ts ...` to run straight from the sources.
+When changing the code, run `npm run build` to update `dist/`, or `npx tsx src/index.ts ...` to run straight from the sources.
 
 # How it works
 
