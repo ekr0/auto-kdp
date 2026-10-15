@@ -66,12 +66,13 @@ export async function getTextFieldValue(id: string, page: PageInterface): Promis
     return oldValue;
 }
 
-export async function updateTextFieldIfChanged(id: string, value: string, fieldHumanName: string, page: PageInterface, book: Book, verbose: boolean): Promise<boolean> {
+export async function updateTextFieldIfChanged(id: string, value: string, fieldHumanName: string, page: PageInterface, book: Book, verbose: boolean,
+                                               isSame: (oldValue: string, newValue: string) => boolean = (a, b) => a == b): Promise<boolean> {
     // Read the old value.
     const oldValue = await page.evalValue(id, x => (x as HTMLInputElement).value, Timeouts.SEC_10);
 
     // If they are the same, we are done.
-    if (oldValue == value) {
+    if (isSame(oldValue, value)) {
         debug(book, verbose, `No need to update ${fieldHumanName}, got ${oldValue}`);
         return false;
     }

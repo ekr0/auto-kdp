@@ -75,5 +75,23 @@ async function updateMarketplace(marketplace: string, page: PageInterface, book:
   const url = getMarketplaceUrl(marketplace);
   const id = `[aria-label="Price for ${url} in ${currency}"]`;
   const newPrice = book.getPriceForMarketplace(marketplace);
-  return await updateTextFieldIfChanged(id, '' + newPrice, 'price for ' + marketplace + " marketplace", page, book, verbose);
+  return await updateTextFieldIfChanged(id, '' + newPrice, 'price for ' + marketplace + " marketplace", page, book, verbose,
+    (a, b) => isSamePrice(a, b, currency));
+}
+
+// Prices on the page can be formatted differently from ours: some marketplaces use
+// a decimal comma ("12,99"), and yen has no decimals but may use a thousands
+// separator ("1,500").
+export function isSamePrice(a: string, b: string, currency: string): boolean {
+  if (a == b) {
+    return true;
+  }
+  const toNumber = (s: string) => {
+    s = s.trim();
+    s = currency.toUpperCase() == 'JPY' ? s.replace(/,/g, '') : s.replace(',', '.');
+    return Number(s);
+  };
+  const x = toNumber(a);
+  const y = toNumber(b);
+  return a.trim() != '' && b.trim() != '' && !isNaN(x) && x == y;
 }
