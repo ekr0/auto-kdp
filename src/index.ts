@@ -5,7 +5,7 @@ import { program } from 'commander';
 import { BookFile } from './book/book-file.js';
 import { ExecuteBookActions } from './util/book-action-executor.js';
 import { ActionParams } from './util/action-params.js';
-import { debug } from './util/utils.js';
+import { debug, goToSleep } from './util/utils.js';
 
 // Action
 import { scrapeAmazonCoverImageUrl } from './action/scrape-amazon-cover-image-url.js';
@@ -25,10 +25,6 @@ import { setSeriesTitle } from './action/set-series-title.js';
 import { BookList } from './book/book-list.js';
 import { Book } from './book/book.js';
 import { BrowserInterface, PuppeteerBrowser } from './browser.js';
-
-import pkg from 'sleep';
-const { sleep } = pkg;
-
 
 async function executeBookActionCallback(action: string, book: Book, params: ActionParams) {
   debug(book, params.verbose, '----- ' + action + '-----');
@@ -109,7 +105,7 @@ async function processAllBooksOnce(scrapeOnly: boolean | null, bookList: BookLis
         if (numConsecutiveFastOperations > 200) {
           // Take a little break.
           console.log("Too many fast operations - sleeping for 30s");
-          sleep(30);
+          await goToSleep(30_000);
           numConsecutiveFastOperations = 0;
         }
       } else {
