@@ -30,7 +30,7 @@ npm install -g .     # puts an `auto-kdp` command on your PATH
 
 Then run `auto-kdp --help` from any directory. To update, run `git pull && npm install` in the clone.
 
-When changing the code, run `npm run build` to update `dist/`, or `npx tsx src/index.ts ...` to run straight from the sources.
+When changing the code, run `npm run build` to update `dist/` (or keep `npm run build:watch` running to rebuild on every save), or `npx tsx src/index.ts ...` to run straight from the sources.
 
 # How it works
 
