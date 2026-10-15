@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import _ from 'lodash';
 
 import * as lockfile from 'proper-lockfile';
 import CsvParser from 'csv-parser';
@@ -92,7 +91,7 @@ export class BookFile {
       lockfile.lock(this.lockFilePath)
         .then((release) => {
           try {
-            const headers = _.map(this.headers, x => ({ id: x, title: x }));
+            const headers = this.headers.map(x => ({ id: x, title: x }));
             const writer = CsvWriter.createObjectCsvWriter({ path: this.outputFilePath, header: headers });
             const records = bookList.getBooks().map(x => x.getDataToWrite());
             writer.writeRecords(records)

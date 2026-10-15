@@ -15,7 +15,6 @@
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
     "eslint-plugin": "^1.0.1",
-    "lodash": "^4.17.21",
     "log-prefix": "^0.1.1",
     "path": "^0.12.7",
     "proper-lockfile": "^4.1.2",
